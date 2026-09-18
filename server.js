@@ -236,12 +236,26 @@ const priorityDefaults={
 };
 
 async function nextTicketId(conn) {
-  const key=jakartaDateKey(new Date());
-  await conn.query('INSERT IGNORE INTO ticket_sequences (seq_date,last_value) VALUES (?,0)',[key]);
-  const [rows]=await conn.query('SELECT last_value FROM ticket_sequences WHERE seq_date=? FOR UPDATE',[key]);
-  const next=Number(rows[0]?.last_value||0)+1;
-  await conn.query('UPDATE ticket_sequences SET last_value=? WHERE seq_date=?',[next,key]);
-  return `ARU-${key.replaceAll('-','')}-${String(next).padStart(4,'0')}`;
+  const key = jakartaDateKey(new Date());
+
+  await conn.query(
+    'INSERT IGNORE INTO `ticket_sequences` (`seq_date`, `last_value`) VALUES (?, 0)',
+    [key]
+  );
+
+  const [rows] = await conn.query(
+    'SELECT `last_value` FROM `ticket_sequences` WHERE `seq_date` = ? FOR UPDATE',
+    [key]
+  );
+
+  const next = Number(rows[0]?.last_value || 0) + 1;
+
+  await conn.query(
+    'UPDATE `ticket_sequences` SET `last_value` = ? WHERE `seq_date` = ?',
+    [next, key]
+  );
+
+  return `ARU-${key.replaceAll('-', '')}-${String(next).padStart(4, '0')}`;
 }
 
 async function insertTimeline(conn,ticketId,type,byName,note,byUserId=null,at=nowDate()) {
@@ -703,6 +717,95 @@ app.post('/api/admin/tickets/:id/resolve',adminOnly,upload.array('resolutionEvid
     });
     const updated=await getTicketById(t.id);await notifyRequester(updated,'Pekerjaan Selesai · Mohon Konfirmasi','Tim IT telah menyelesaikan pekerjaan pada ticket ini.',resolutionNote?`<p><strong>Catatan penyelesaian:</strong><br>${escapeHtml(resolutionNote)}</p>`:'');res.json({ok:true,ticket:updated});
   }catch(err){removeSavedFiles(saved,'resolutions');next(err)}
+});
+
+// ROOT ONLY - PERMANENT DELETE TICKET
+app.delete('/api/root/tickets/:id', rootOnly, async (req, res, next) => {
+  try {
+    const ticketId = String(req.params.id || '').trim();
+    const confirmation = String(req.body?.confirmTicketId || '').trim();
+
+    const ticket = await getTicketById(ticketId, { includeTimeline: false });
+
+    if (!ticket) {
+      return res.status(404).json({
+        error: 'Ticket tidak ditemukan.'
+      });
+    }
+
+    // Root wajib mengetik Ticket ID yang sama persis.
+    if (confirmation !== ticketId) {
+      return res.status(400).json({
+        error: `Ketik ${ticketId} untuk mengonfirmasi penghapusan permanen.`
+      });
+    }
+
+    // Ambil file evidence sebelum metadata-nya ikut terhapus oleh CASCADE.
+    const [evidenceRows] = await pool.query(
+      'SELECT kind, filename FROM ticket_evidence WHERE ticket_id=?',
+      [ticketId]
+    );
+
+    // ticket_evidence dan ticket_timeline otomatis terhapus
+    // karena foreign key ON DELETE CASCADE.
+    await withTransaction(async conn => {
+      const [result] = await conn.query(
+        'DELETE FROM tickets WHERE id=?',
+        [ticketId]
+      );
+
+      if (!result.affectedRows) {
+        throw new Error('Ticket gagal dihapus.');
+      }
+    });
+
+    // Hapus file evidence fisik setelah DB berhasil dihapus.
+    let deletedFiles = 0;
+    let failedFiles = 0;
+
+    for (const file of evidenceRows) {
+      const folder =
+        file.kind === 'resolution'
+          ? RESOLUTION_UPLOAD_DIR
+          : TICKET_UPLOAD_DIR;
+
+      // basename mencegah path traversal.
+      const filename = path.basename(String(file.filename || ''));
+
+      if (!filename) continue;
+
+      const fullPath = path.join(folder, filename);
+
+      try {
+        fs.unlinkSync(fullPath);
+        deletedFiles++;
+      } catch (err) {
+        // File sudah tidak ada bukan masalah fatal.
+        if (err.code !== 'ENOENT') {
+          failedFiles++;
+
+          console.warn(
+            `[DELETE TICKET] Gagal menghapus evidence ${filename}:`,
+            err.message
+          );
+        }
+      }
+    }
+
+    console.warn(
+      `[ROOT DELETE] ${req.session.user.name} (${req.session.user.id}) ` +
+      `menghapus ticket ${ticketId}. Evidence deleted=${deletedFiles}, failed=${failedFiles}`
+    );
+
+    res.json({
+      ok: true,
+      deletedTicketId: ticketId,
+      deletedFiles,
+      failedFiles
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.post('/api/tickets/:id/confirm',auth,async(req,res,next)=>{

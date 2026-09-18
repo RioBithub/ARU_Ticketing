@@ -227,15 +227,162 @@ async function showTicket(id){
 function renderEvidence(files){return files.map(f=>{const isImg=String(f.mimetype||'').startsWith('image/')||String(f.url||'').endsWith('.webp');const saved=Number(f.savedBytes||0)>0?` · hemat ${fmtBytes(f.savedBytes)}`:'';return isImg?`<a class="evidence-card image" href="${esc(f.url)}" target="_blank"><img src="${esc(f.url)}" alt="${esc(f.name)}"><div><strong>${esc(f.group||'Evidence')}</strong><span>${esc(f.name)} · ${fmtBytes(f.size)}${saved}</span></div></a>`:`<a class="evidence-card" href="${esc(f.url)}" target="_blank"><div class="doc-icon">DOC</div><div><strong>${esc(f.group||'Evidence')}</strong><span>${esc(f.name)} · ${fmtBytes(f.size)}</span></div></a>`;}).join('');}
 function adminTicketControls(t){
   const currentKey=t.assignedTo?.key||(t.assignedTo?.userId?`admin:${t.assignedTo.userId}`:(t.assignedTo?.picId?`external:${t.assignedTo.picId}`:''));
-  return `<div class="detail-section admin-controls"><div class="section-head compact"><div><span class="eyebrow">ADMIN CONTROL</span><h4>Kelola Ticket</h4></div></div><div class="form-grid two"><label>Status<select id="editStatus">${STATUSES.map(x=>`<option ${x===t.status?'selected':''}>${x}</option>`)}</select></label><label>Priority<select id="editPriority">${ALL_PRIORITIES.map(x=>`<option ${x===t.priority?'selected':''}>${x}</option>`)}</select></label><label class="span-2">PIC<select id="editPic"><option value="">Belum ditentukan</option>${PIC_DIRECTORY.map(p=>`<option value="${esc(p.key)}" ${currentKey===p.key?'selected':''}>${esc(picOptionLabel(p))}</option>`).join('')}</select><small>Root dan Admin biasa dapat menjadi PIC. PIC non-admin dikelola di menu PIC Directory.</small></label><label>Estimasi Proses<input id="editProcessing" value="${esc(t.estimatedProcessing||'TBA')}"></label><label>Estimasi Completion<input id="editCompletion" value="${esc(t.estimatedCompletion||'TBA')}" placeholder="Bisa ditulis TBA"></label><button class="btn ghost span-2" id="applyPriorityDefault">↺ Gunakan Default Priority</button><button class="btn secondary span-2" id="saveTicketChanges">Simpan Perubahan & Kirim Email</button></div><div class="divider"><span>penyelesaian</span></div><button class="btn primary wide" id="resolveTicketBtn">✓ Resolve Ticket + Catatan / Evidence</button></div>`;
+  return `<div class="detail-section admin-controls"><div class="section-head compact"><div><span class="eyebrow">ADMIN CONTROL</span><h4>Kelola Ticket</h4></div></div><div class="form-grid two"><label>Status<select id="editStatus">${STATUSES.map(x=>`<option ${x===t.status?'selected':''}>${x}</option>`)}</select></label><label>Priority<select id="editPriority">${ALL_PRIORITIES.map(x=>`<option ${x===t.priority?'selected':''}>${x}</option>`)}</select></label><label class="span-2">PIC<select id="editPic"><option value="">Belum ditentukan</option>${PIC_DIRECTORY.map(p=>`<option value="${esc(p.key)}" ${currentKey===p.key?'selected':''}>${esc(picOptionLabel(p))}</option>`).join('')}</select><small>Root dan Admin biasa dapat menjadi PIC. PIC non-admin dikelola di menu PIC Directory.</small></label><label>Estimasi Proses<input id="editProcessing" value="${esc(t.estimatedProcessing||'TBA')}"></label><label>Estimasi Completion<input id="editCompletion" value="${esc(t.estimatedCompletion||'TBA')}" placeholder="Bisa ditulis TBA"></label><button class="btn ghost span-2" id="applyPriorityDefault">↺ Gunakan Default Priority</button><button class="btn secondary span-2" id="saveTicketChanges">Simpan Perubahan & Kirim Email</button></div><div class="divider"><span>penyelesaian</span></div><button class="btn primary wide" id="resolveTicketBtn">
+  ✓ Resolve Ticket + Catatan / Evidence
+</button>
+
+${isRoot() ? `
+  <div class="divider">
+    <span>root only</span>
+  </div>
+
+  <div class="confirm-panel">
+    <h4>Danger Zone</h4>
+    <p>
+      Penghapusan ticket bersifat permanen dan akan menghapus
+      timeline serta seluruh evidence ticket.
+    </p>
+
+    <button
+      class="btn danger-soft wide"
+      id="deleteTicketBtn"
+    >
+      🗑 Hapus Ticket Permanen
+    </button>
+  </div>
+` : ''}
+
+</div>`;
+
 }
 function bindAdminTicketControls(t){
   const setDefaults=()=>{const d=DEFAULTS[$('#editPriority').value];$('#editProcessing').value=d?.processing||'TBA';$('#editCompletion').value=d?.completion||'TBA';};
   $('#applyPriorityDefault').onclick=setDefaults;$('#editPriority').addEventListener('change',setDefaults);
   $('#saveTicketChanges').onclick=async()=>{try{await api(`/api/admin/tickets/${encodeURIComponent(t.id)}`,{method:'PATCH',body:JSON.stringify({status:$('#editStatus').value,priority:$('#editPriority').value,assignedPicKey:$('#editPic').value,estimatedProcessing:$('#editProcessing').value,estimatedCompletion:$('#editCompletion').value})});toast('Perubahan disimpan. Requester dan PIC baru diberi notifikasi jika email tersedia.');closeModal();navigate(currentPage);}catch(err){toast(err.message,'error');}};
-  $('#resolveTicketBtn').onclick=()=>resolveModal(t);
+  $('#resolveTicketBtn').onclick = () => resolveModal(t);
+
+if (isRoot() && $('#deleteTicketBtn')) {
+  $('#deleteTicketBtn').onclick = () => deleteTicketModal(t);
 }
 
+function deleteTicketModal(t) {
+  openModal(`
+    <span class="eyebrow">ROOT ADMIN ONLY</span>
+
+    <h2>Hapus Ticket Permanen</h2>
+
+    <p class="muted">
+      Anda akan menghapus
+      <strong>${esc(t.id)}</strong>
+      secara permanen.
+    </p>
+
+    <div class="confirm-panel">
+      <h4>⚠ Data yang akan dihapus</h4>
+
+      <p>
+        Ticket, timeline aktivitas, metadata evidence,
+        dan file evidence fisik akan dihapus.
+      </p>
+
+      <p>
+        Tindakan ini <strong>tidak dapat dibatalkan.</strong>
+      </p>
+    </div>
+
+    <div class="stack-form">
+      <label>
+        Ketik Ticket ID untuk konfirmasi
+
+        <input
+          id="deleteTicketConfirm"
+          autocomplete="off"
+          placeholder="${esc(t.id)}"
+        >
+
+        <small>
+          Ketik persis: <strong>${esc(t.id)}</strong>
+        </small>
+      </label>
+
+      <button
+        type="button"
+        class="btn danger-soft wide"
+        id="confirmDeleteTicket"
+        disabled
+      >
+        🗑 Hapus Permanen
+      </button>
+
+      <button
+        type="button"
+        class="btn secondary wide"
+        id="cancelDeleteTicket"
+      >
+        Batal
+      </button>
+    </div>
+  `);
+
+  const input = $('#deleteTicketConfirm');
+  const deleteBtn = $('#confirmDeleteTicket');
+
+  const syncDeleteButton = () => {
+    deleteBtn.disabled =
+      input.value.trim() !== t.id;
+  };
+
+  input.addEventListener('input', syncDeleteButton);
+
+  $('#cancelDeleteTicket').onclick = () => {
+    closeModal();
+  };
+
+  deleteBtn.onclick = async () => {
+    const confirmTicketId = input.value.trim();
+
+    if (confirmTicketId !== t.id) {
+      toast('Ticket ID konfirmasi tidak sesuai.', 'error');
+      return;
+    }
+
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Menghapus...';
+
+    try {
+      const result = await api(
+        `/api/root/tickets/${encodeURIComponent(t.id)}`,
+        {
+          method: 'DELETE',
+          body: JSON.stringify({
+            confirmTicketId
+          })
+        }
+      );
+
+      toast(
+        `Ticket ${result.deletedTicketId} berhasil dihapus permanen.`
+      );
+
+      closeModal();
+
+      if (currentPage === 'dashboard') {
+        navigate('dashboard');
+      } else {
+        navigate('tickets');
+      }
+    } catch (err) {
+      toast(err.message, 'error');
+
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = '🗑 Hapus Permanen';
+    }
+  };
+
+  input.focus();
+}
+
+}
 function resolveModal(t){
   resolutionQueue=[];
   openModal(`<span class="eyebrow">RESOLUTION</span><h2>Selesaikan ${esc(t.id)}</h2><p class="muted">Catatan dan evidence penyelesaian opsional, tetapi sangat disarankan untuk dokumentasi dan audit.</p><form id="resolveForm" class="stack-form"><label>Catatan Penyelesaian<textarea name="resolutionNote" rows="6" placeholder="Jelaskan tindakan yang dilakukan dan hasil pengecekan."></textarea></label><div><div class="upload-zone compact-upload" id="resolutionUploadZone"><input type="file" id="resolutionEvidenceInput" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"><div class="upload-icon">⇧</div><strong>Tambah evidence penyelesaian</strong><span>Maks. 10 file total · 5 MB/file · gambar dikompres otomatis</span></div><div id="resolutionQueue" class="file-queue"></div></div><button class="btn primary">Resolve Ticket & Kirim Notifikasi</button></form>`);
