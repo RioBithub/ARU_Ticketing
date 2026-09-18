@@ -1,0 +1,3 @@
+-- Jika database aru_ticketing sudah dibuat manual di panel/phpMyAdmin,
+-- pilih database tersebut lalu import file aru_ticketing_mysql.sql.
+-- File ini sengaja hanya menjadi penanda; schema utama ada di aru_ticketing_mysql.sql.

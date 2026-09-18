@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c3978" />
+  <title>ARU IT Ticketing</title>
+  <link rel="icon" type="image/svg+xml" href="https://aruraharja.co.id/images/general/logo/aru.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <section id="authView" class="auth-shell">
+    <div class="auth-brand-panel">
+      <div class="brand-lockup">
+        <img src="https://aruraharja.co.id/images/general/logo/aru.svg" alt="Aru Raharja" />
+        <div><strong>IT Ticketing</strong><span>PT Aru Raharja</span></div>
+      </div>
+      <div class="auth-copy">
+        <span class="eyebrow light">IT SERVICE DESK</span>
+        <h1>Kendala tercatat.<br/>Progress terlihat.</h1>
+        <p>Pelaporan kendala, evidence, estimasi pekerjaan, notifikasi email, hingga konfirmasi user dalam satu sistem.</p>
+      </div>
+      <div class="auth-feature-grid">
+        <div><b>01</b><span>Email Verification</span></div>
+        <div><b>02</b><span>Ticket Workflow</span></div>
+        <div><b>03</b><span>Solver Tracking</span></div>
+        <div><b>04</b><span>Excel Reporting</span></div>
+      </div>
+    </div>
+
+    <div class="auth-card-wrap">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="tab-btn active" data-tab="login">Login</button>
+          <button class="tab-btn" data-tab="register">Daftar</button>
+          <button class="tab-btn" data-tab="guest">Guest</button>
+          <button class="tab-btn" data-tab="forgot">Lupa Password</button>
+        </div>
+
+        <div class="auth-pane active" id="tab-login">
+          <span class="eyebrow">WELCOME BACK</span>
+          <h2>Masuk ke IT Ticketing</h2>
+          <p class="muted">Gunakan username atau email yang terdaftar.</p>
+          <form id="loginForm" class="stack-form">
+            <label>Username / Email<input name="login" autocomplete="username" required placeholder="username atau email" /></label>
+            <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Masukkan password" /></label>
+            <button class="btn primary wide">Masuk</button>
+          </form>
+          <div class="auth-guide">
+            <div class="auth-guide-icon">i</div>
+            <div class="auth-guide-copy"><strong>Belum punya akun?</strong><p>Email <b>@aruraharja.co.id</b> aktif otomatis setelah OTP. Email lain menunggu approval admin IT.</p></div>
+            <button type="button" class="auth-guide-action" data-switch-tab="register">Daftar Akun</button>
+          </div>
+          <div class="auth-login-links"><span>Kesulitan masuk?</span><button type="button" data-switch-tab="forgot">Reset password lewat email</button></div>
+        </div>
+
+        <div class="auth-pane" id="tab-register">
+          <span class="eyebrow">NEW ACCOUNT</span>
+          <h2>Registrasi User</h2>
+          <p class="muted" id="registerFlowHint">Email internal <b>@aruraharja.co.id</b> diverifikasi dengan OTP dan langsung aktif. Email eksternal akan diajukan ke admin untuk approval.</p>
+          <form id="registerForm" class="form-grid two">
+            <label>Nama Lengkap<input name="name" required /></label>
+            <label>Username<input name="username" required /></label>
+            <label>Email<input name="email" type="email" required placeholder="nama@aruraharja.co.id" /></label>
+            <label>No. Telepon<input name="phone" required /></label>
+            <label class="span-2">Bagian / Divisi<input name="department" required placeholder="Finance, HR, Legal, IT, dll." /></label>
+            <label class="span-2">Password<input name="password" type="password" minlength="8" required placeholder="Minimal 8 karakter" /></label>
+            <button class="btn primary span-2" id="registerSubmitBtn">Daftar Akun</button>
+          </form>
+        </div>
+
+        <div class="auth-pane" id="tab-pending">
+          <span class="eyebrow">REGISTRATION SUBMITTED</span>
+          <h2>Menunggu persetujuan admin</h2>
+          <p class="muted" id="pendingHint">Registrasi eksternal sudah masuk ke antrean approval.</p>
+          <div class="pending-box">
+            <strong>Yang terjadi selanjutnya</strong>
+            <p>Admin akan memeriksa data akun. Setelah disetujui, notifikasi akan dikirim ke email yang didaftarkan dan akun dapat digunakan untuk login.</p>
+          </div>
+          <button type="button" class="btn secondary wide" data-switch-tab="login">Kembali ke Login</button>
+        </div>
+
+        <div class="auth-pane" id="tab-guest">
+          <span class="eyebrow">GUEST REQUEST</span>
+          <h2>Buat Ticket Tanpa Akun</h2>
+          <p class="muted">Untuk permintaan cepat seperti pengajuan pembuatan email, akses, perangkat, atau bantuan IT lainnya. Priority akan ditentukan oleh tim IT.</p>
+          <form id="guestTicketForm" class="form-grid two">
+            <label>Nama Lengkap<input name="name" required placeholder="Nama requester" /></label>
+            <label>Bagian / Divisi<input name="department" placeholder="Opsional" /></label>
+            <label>Email<input name="email" type="email" placeholder="Opsional, untuk notifikasi ticket" /></label>
+            <label>No. Telepon<input name="phone" placeholder="Opsional" /></label>
+            <label>Kategori<select name="category" id="guestCategory"></select></label>
+            <label>Lokasi / Area<input name="location" placeholder="Opsional" /></label>
+            <label class="span-2">Judul Permintaan<input name="title" required placeholder="Contoh: Pengajuan pembuatan email perusahaan" /></label>
+            <label class="span-2">Detail Permintaan<textarea name="description" rows="5" required placeholder="Jelaskan kebutuhan atau kendala secara singkat dan jelas."></textarea></label>
+            <div class="span-2 guest-priority-note"><span>Priority</span><strong>Ditentukan oleh IT</strong><small>Ticket guest dibuat sebagai <b>Unassigned</b> dengan estimasi TBA sampai admin menetapkan priority.</small></div>
+            <div class="span-2"><div class="upload-zone compact-upload" id="guestUploadZone"><input type="file" id="guestEvidenceInput" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"><div class="upload-icon">⇧</div><strong>Tambahkan evidence bila diperlukan</strong><span>Maks. 10 file · 5 MB/file · gambar dikompres otomatis</span></div><div id="guestFileQueue" class="file-queue"></div></div>
+            <button class="btn primary span-2">Kirim Ticket Guest</button>
+          </form>
+          <div id="guestTicketResult" class="hidden"></div>
+        </div>
+
+        <div class="auth-pane" id="tab-verify">
+          <span class="eyebrow">EMAIL VERIFICATION</span>
+          <h2>Masukkan kode verifikasi</h2>
+          <p class="muted" id="verifyHint">Kode OTP sudah dikirim ke email.</p>
+          <form id="verifyForm" class="stack-form">
+            <input type="hidden" name="identity" id="verifyIdentity" />
+            <label>Kode OTP<input name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required placeholder="6 digit kode" class="otp-input" /></label>
+            <button class="btn primary wide">Verifikasi Email</button>
+          </form>
+          <button type="button" class="btn ghost wide" id="resendVerifyBtn">Kirim Ulang Kode</button>
+          <div class="auth-login-links"><span>Sudah aktif?</span><button type="button" data-switch-tab="login">Kembali ke login</button></div>
+        </div>
+
+        <div class="auth-pane" id="tab-forgot">
+          <span class="eyebrow">PASSWORD RECOVERY</span>
+          <h2>Reset Password</h2>
+          <p class="muted">Kode reset dikirim langsung ke email akun. Tidak perlu menunggu approval admin.</p>
+          <form id="forgotForm" class="stack-form">
+            <label>Username / Email<input name="identity" required /></label>
+            <button class="btn primary wide">Kirim Kode Reset</button>
+          </form>
+          <div id="resetBlock" class="hidden">
+            <div class="divider"><span>Kode sudah dikirim</span></div>
+            <form id="resetForm" class="stack-form compact">
+              <input type="hidden" name="identity" id="resetIdentity" />
+              <label>Kode OTP<input name="code" maxlength="6" inputmode="numeric" required placeholder="6 digit kode" class="otp-input" /></label>
+              <label>Password Baru<input name="newPassword" type="password" minlength="8" required placeholder="Minimal 8 karakter" /></label>
+              <button class="btn secondary wide">Simpan Password Baru</button>
+            </form>
+            <button type="button" class="btn ghost wide" id="resendResetBtn">Kirim Ulang Kode Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><img src="https://aruraharja.co.id/images/general/logo/aru.svg" alt="ARU" /><div><strong>IT Ticketing</strong><span>Service Desk</span></div></div>
+      <nav id="navMenu"></nav>
+      <div class="sidebar-user" id="sidebarUser"></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <button id="mobileMenu" class="icon-btn menu-btn" aria-label="Buka menu">☰</button>
+        <div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Monitoring dan pengelolaan ticket.</p></div>
+        <div class="top-actions"><button class="btn ghost" id="changePasswordBtn">Ganti Password</button><button class="btn danger-soft" id="logoutBtn">Logout</button></div>
+      </header>
+      <div id="pageContent" class="page-content"></div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modalBackdrop">
+    <div class="modal" id="modalBox"><button class="modal-close" id="modalClose">×</button><div id="modalContent"></div></div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

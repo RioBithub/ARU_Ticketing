@@ -1,0 +1,15 @@
+[
+  {
+    "id": "OTP-MU5BENI8-185F60",
+    "userId": "USR-MU5BENBN-2A2423",
+    "email": "depa@aruraharja.co.id",
+    "purpose": "registration",
+    "codeHash": "4319a07ca0fdb6f174e8a2499c9bbbe18f433fa2c0e250b598ef01da331b4a67",
+    "attempts": 0,
+    "maxAttempts": 5,
+    "createdAt": "2026-09-17T09:16:10.497Z",
+    "expiresAt": "2026-09-17T09:26:10.497Z",
+    "consumedAt": "2026-09-17T09:17:02.365Z",
+    "invalidatedAt": null
+  }
+]

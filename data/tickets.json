@@ -1,0 +1,59 @@
+[
+  {
+    "id": "ARU-20260917-0003",
+    "name": "deva alvyn",
+    "employeeId": "",
+    "department": "IT",
+    "contact": "081285522624",
+    "category": "Hardware",
+    "subject": "Wifi Problem",
+    "description": "WIFI TERLALU LEMOT",
+    "priority": "Medium",
+    "status": "Open",
+    "adminNote": "",
+    "attachments": [
+      {
+        "url": "/uploads/1789626794476-zhjg7u-ChatGPT_Image_Sep_17__2026__11_47_18_AM.png",
+        "name": "ChatGPT Image Sep 17, 2026, 11_47_18 AM.png",
+        "mimetype": "image/png",
+        "size": 2204790
+      }
+    ],
+    "createdAt": "2026-09-17T06:33:14.490Z",
+    "updatedAt": "2026-09-17T06:33:14.490Z"
+  },
+  {
+    "id": "ARU-20260917-0002",
+    "name": "deva",
+    "employeeId": "43434343",
+    "department": "IT",
+    "contact": "081285522624",
+    "category": "Hardware",
+    "subject": "ngelag semua",
+    "description": "yaaa",
+    "priority": "Medium",
+    "status": "In Progress",
+    "adminNote": "sudah ya aman",
+    "attachment": "/uploads/1789619041100-346qun-ChatGPT_Image_Sep_17__2026__09_17_38_AM.png",
+    "attachmentName": "ChatGPT Image Sep 17, 2026, 09_17_38 AM.png",
+    "createdAt": "2026-09-17T04:24:01.115Z",
+    "updatedAt": "2026-09-17T04:38:03.690Z"
+  },
+  {
+    "id": "ARU-20260917-0001",
+    "name": "deva",
+    "employeeId": "43434343",
+    "department": "IT",
+    "contact": "081285522624",
+    "category": "Hardware",
+    "subject": "wifi kurang responsif",
+    "description": "Saat membuka semua bagian",
+    "priority": "Medium",
+    "status": "Open",
+    "adminNote": "",
+    "attachment": null,
+    "attachmentName": null,
+    "createdAt": "2026-09-17T03:50:26.224Z",
+    "updatedAt": "2026-09-17T03:50:26.224Z"
+  }
+]

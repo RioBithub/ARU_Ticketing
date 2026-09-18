@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 430" role="img" aria-label="Aru Raharja">
+  <defs>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#24c9ec"/>
+      <stop offset="1" stop-color="#20bde5"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(48 30)">
+    <path d="M95 14C52 14 18 45 18 86c0 52 44 74 126 72L131 95C123 55 118 14 95 14z" fill="url(#cyan)"/>
+    <path d="M231 14c43 0 77 31 77 72 0 52-44 74-126 72l13-63c8-40 13-81 36-81z" fill="#0d2f70"/>
+    <path d="M95 176c-43 0-77 31-77 72 0 52 44 74 126 72l-13-63c-8-40-13-81-36-81z" fill="url(#cyan)"/>
+    <path d="M231 176c43 0 77 31 77 72 0 52-44 74-126 72l13-63c8-40 13-81 36-81z" fill="#0d2f70"/>
+  </g>
+  <text x="210" y="405" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="700" letter-spacing="15" fill="#0d2f70">aru</text>
+</svg>

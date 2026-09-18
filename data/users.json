@@ -1,0 +1,53 @@
+[
+  {
+    "id": "USR-MU58OJC5-2A3A8D",
+    "username": "admin",
+    "name": "Root Admin",
+    "email": "masterofunity@gmail.com",
+    "phone": "-",
+    "department": "IT Web Development & Operations",
+    "label": "Root Administrator",
+    "role": "root_admin",
+    "status": "active",
+    "passwordHash": "$2a$10$aQ4x.b6Y62N0slaAzVL.2uWdmRUYq5BOFeQy5xrDcMF2cWNKaJ3uG",
+    "createdAt": "2026-09-17T07:59:52.873Z",
+    "approvedAt": "2026-09-17T07:59:52.874Z",
+    "approvedBy": "SYSTEM",
+    "emailVerified": true,
+    "emailVerifiedAt": "2026-09-17T07:59:52.874Z"
+  },
+  {
+    "id": "USR-MU58VAOS-13D69A",
+    "username": "devalvyn",
+    "name": "Deva Alvyn Budinugraha",
+    "email": "devalviinbudi@gmail.com",
+    "phone": "081285522624",
+    "department": "IT",
+    "label": "User",
+    "role": "user",
+    "status": "active",
+    "passwordHash": "$2a$10$sZ4lPTeoGaoXiSCN.bEuSua4Z8TxEPpIzKUiEILIdbyuVGV47A6W2",
+    "createdAt": "2026-09-17T08:05:08.270Z",
+    "approvedAt": "2026-09-17T08:05:47.238Z",
+    "approvedBy": "USR-MU58OJC5-2A3A8D",
+    "emailVerified": true,
+    "emailVerifiedAt": "2026-09-17T08:05:47.238Z"
+  },
+  {
+    "id": "USR-MU5BENBN-2A2423",
+    "username": "devaganteng",
+    "name": "Deva Alvyn Budinugraha",
+    "email": "depa@aruraharja.co.id",
+    "phone": "081285522624",
+    "department": "IT",
+    "label": "User",
+    "role": "user",
+    "status": "active",
+    "emailVerified": true,
+    "passwordHash": "$2a$12$Jds1bMFSGAXhyf3n2ExWhOO2k4QMB4YXY4vt/YklCvjJ7O1r6kaFS",
+    "createdAt": "2026-09-17T09:16:10.494Z",
+    "emailVerifiedAt": "2026-09-17T09:17:02.366Z",
+    "approvedAt": "2026-09-17T09:17:02.366Z",
+    "approvedBy": "AUTO_INTERNAL_DOMAIN"
+  }
+]

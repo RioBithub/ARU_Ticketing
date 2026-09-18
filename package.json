@@ -1,0 +1,27 @@
+{
+  "name": "aru-ticketing-v5-mysql",
+  "version": "5.0.0",
+  "private": true,
+  "description": "ARU IT Ticketing V5 - MySQL persistence, email OTP, compressed evidence, PIC directory, advanced Excel reporting",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check db.js && node --check public/app.js && node --check scripts/test-db.js && node --check scripts/migrate-json-to-mysql.js && node --check scripts/cleanup-orphan-uploads.js",
+    "db:test": "node scripts/test-db.js",
+    "migrate:json": "node scripts/migrate-json-to-mysql.js",
+    "storage:cleanup": "node scripts/cleanup-orphan-uploads.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.18.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.11.4",
+    "nodemailer": "^6.9.15",
+    "sharp": "^0.33.5"
+  }
+}

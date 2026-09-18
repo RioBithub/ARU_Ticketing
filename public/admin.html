@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#082d67" />
+  <title>Admin Console | ARU IT Ticketing</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="admin-body">
+  <header class="topbar admin-topbar">
+    <a class="brand" href="/">
+      <img src="https://aruraharja.co.id/images/general/logo/aru.svg" alt="Logo Aru Raharja" />
+      <div><strong>IT Ticketing</strong><span>Admin Console</span></div>
+    </a>
+    <div class="topbar-actions"><a class="topbar-link" href="/">Portal User</a><button id="logoutBtn" class="admin-link hidden">Logout</button></div>
+  </header>
+
+  <main class="admin-main">
+    <section id="loginView" class="login-shell">
+      <div class="login-decoration"><span>ARU</span><b>IT Service Desk</b><p>Kelola incident, request, evidence, dan progres ticket dari satu dashboard.</p></div>
+      <div class="card login-card">
+        <div class="login-icon">⌁</div><span class="eyebrow">ADMIN ACCESS</span><h1>Welcome back</h1><p>Masuk untuk mengelola ticket.</p>
+        <form id="loginForm">
+          <label>Username<input name="username" required autocomplete="username" placeholder="admin" /></label>
+          <label>Password<div class="password-wrap"><input id="passwordInput" name="password" type="password" required autocomplete="current-password" placeholder="••••••••" /><button id="togglePassword" type="button">Lihat</button></div></label>
+          <button class="btn primary full" type="submit">Login Admin</button>
+          <div id="loginMsg" class="message hidden"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="admin-dashboard hidden">
+      <div class="admin-container">
+        <div class="dashboard-heading">
+          <div><span class="eyebrow">ADMIN DASHBOARD</span><h1>IT Service Desk</h1><p>Monitor laporan, atur priority, assign PIC, dan update progres penanganan.</p></div>
+          <div class="dashboard-actions"><button id="exportBtn" class="btn secondary compact">Export CSV</button><button id="refreshBtn" class="btn primary compact">↻ Refresh</button></div>
+        </div>
+
+        <div id="stats" class="stats-grid"></div>
+
+        <div class="card admin-toolbar">
+          <div class="search-box"><span>⌕</span><input id="searchInput" placeholder="Cari ID, pelapor, NPP, divisi, kontak, judul..." /></div>
+          <select id="statusFilter"><option value="All">Semua Status</option><option>Open</option><option>In Progress</option><option>Waiting User</option><option>Finished</option></select>
+          <select id="priorityFilter"><option value="All">Semua Priority</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+          <select id="categoryFilter"><option value="All">Semua Kategori</option><option>Hardware</option><option>Software</option><option>Network / Internet</option><option>Email / Account</option><option>Printer / Scanner</option><option>Server / System</option><option>Access / Permission</option><option>IT Request</option><option>Lainnya</option></select>
+          <select id="sortFilter"><option value="newest">Terbaru</option><option value="updated">Terakhir diupdate</option><option value="priority">Priority tertinggi</option><option value="oldest">Terlama</option></select>
+        </div>
+
+        <div class="admin-list-head"><div><b id="adminResultCount">0 ticket</b><span id="adminLastUpdated">—</span></div><button id="resetAdminFilters" class="text-btn">Reset filter</button></div>
+        <div id="ticketList" class="admin-ticket-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card admin-modal-card">
+      <button id="closeModal" class="modal-close" aria-label="Tutup">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div id="adminEvidenceViewer" class="evidence-viewer hidden" aria-hidden="true">
+    <button id="closeAdminEvidence" class="evidence-viewer-close" aria-label="Tutup">×</button>
+    <div class="evidence-stage"><img id="adminEvidenceImage" alt="Preview evidence" /><div id="adminEvidenceCaption" class="evidence-viewer-caption"></div></div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+  <script src="/admin.js"></script>
+</body>
+</html>
