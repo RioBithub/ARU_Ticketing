@@ -1,0 +1,13 @@
+ARU IT Ticketing V5.3 - Update Only
+
+1. Backup repository / commit perubahan lokal terlebih dahulu.
+2. Copy file update ini ke project V5 MySQL dan replace file yang sama.
+3. JANGAN mengganti .env, uploads, atau data production.
+4. Tidak ada ALTER TABLE / import SQL wajib untuk V5.3.
+5. Jalankan: npm run check
+6. Jalankan lokal: npm start
+7. Test role User, Admin IT/Network, Root, dan Supervisor.
+8. Commit + push GitHub.
+9. Server production: git pull, npm run check, restart service.
+
+Setelah upgrade, Root Admin sebaiknya membuka Account Management dan mengatur Tim Penanganan tiap Administrator menjadi IT, Network, atau Both. Admin lama otomatis dianggap Both sampai diubah.

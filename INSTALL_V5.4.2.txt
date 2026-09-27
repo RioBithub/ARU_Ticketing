@@ -1,0 +1,11 @@
+ARU IT Ticketing V5.4.2 - Update
+
+1. Backup project saat ini.
+2. Replace file dari UPDATE ONLY ke project.
+3. .env, database MySQL, uploads, dan data existing tidak perlu diganti.
+4. Jalankan:
+   npm run check
+   npm start
+5. Hard refresh browser (Ctrl+F5).
+
+Tidak ada migration SQL atau dependency baru.

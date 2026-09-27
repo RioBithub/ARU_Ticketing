@@ -1,0 +1,11 @@
+ARU IT Ticketing V5.4 - Update
+
+1. Backup project / commit perubahan lokal.
+2. Replace server.js, public/app.js, public/styles.css, public/index.html, package.json.
+3. .env dan database tidak perlu diganti.
+4. Jalankan: npm run check
+5. Jalankan: npm start
+6. Test create ticket Kendala dan Permintaan, filter PIC, dashboard analytics, dan export Excel.
+7. Jika aman: git add/commit/push, lalu git pull di server.
+
+Tidak ada SQL migration untuk V5.4.

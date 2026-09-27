@@ -1,0 +1,10 @@
+ARU IT Ticketing V5.5
+
+UPDATE ONLY:
+1. Backup project / commit perubahan lokal.
+2. Replace file dari ZIP update ke project.
+3. Jalankan: npm run check
+4. Jalankan: npm start
+5. Hard refresh browser (Ctrl+F5).
+
+Tidak perlu import SQL, npm install, atau mengubah .env.

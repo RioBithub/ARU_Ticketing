@@ -1,51 +1,50 @@
-# ARU IT Ticketing V5 — MySQL
+# ARU IT Ticketing V5.4
 
-Versi ini memindahkan persistence utama dari file JSON ke **MySQL**. Frontend dan workflow V4.3 tetap dipertahankan: registrasi internal OTP, approval email eksternal, Guest Mode, ticket lifecycle, PIC Directory, admin/root sebagai PIC, solver, evidence, notifikasi email, filter lanjutan, dan export Excel.
+V5.4 memperluas ticket agar tidak hanya berisi kendala. Ticket sekarang dapat diklasifikasikan sebagai **Kendala / Incident** atau **Permintaan / Service Request**, sementara routing PIC tetap menggunakan **Area Penanganan IT / Network**. Dashboard analytics dibuat lebih compact dan menampilkan lebih banyak grafik tanpa menambah library frontend.
 
-## Arsitektur penyimpanan
+## Highlight V5.4
+- Jenis Ticket: Kendala atau Permintaan.
+- Area Penanganan: IT atau Network tetap dipakai untuk routing PIC.
+- Dashboard Supervisor lebih compact dengan filter PIC dan 12 visual analytics.
+- Grafik tambahan: status, jenis ticket, area, priority, visibility, workload PIC, kecepatan per PIC, solver, rating, health estimasi, mode penyelesaian, dan tren.
+- Tabel analytics detail tetap tersedia dalam panel yang bisa dibuka/tutup.
+- Excel Dashboard Grafik mendapat grafik Jenis Ticket, Area Penanganan, Rating, dan Mode Penyelesaian.
+- Tidak memerlukan perubahan schema MySQL; field tambahan tetap tersimpan di payload JSON MySQL.
 
-- **MySQL**: user, role, ticket, PIC, timeline, metadata evidence, OTP token, dan session.
-- **Filesystem `uploads/`**: file evidence aktual. File tidak dimasukkan sebagai BLOB ke MySQL agar database tetap ringan.
-- **Sharp**: JPG/JPEG/PNG/WEBP otomatis di-resize maksimal 1600x1600 dan dikonversi ke WebP quality 68 **hanya jika hasilnya lebih kecil**. Original tidak ditulis ke disk jika versi terkompresi dipakai.
-- PDF/DOC/XLS/PPT/TXT disimpan apa adanya agar tidak rusak.
+---
 
-## 1. Import database
+# ARU IT Ticketing V5 - MySQL
 
-Pastikan MySQL aktif. Untuk XAMPP, nyalakan module **MySQL**, lalu buka phpMyAdmin.
+Versi ini memindahkan data utama ARU IT Ticketing dari file JSON ke **MySQL**, sambil mempertahankan workflow V4.3: Root/Admin sebagai PIC internal, PIC non-admin terpisah, PIC dan Solver berbeda, advanced filter, dan export Excel.
 
-Import file:
+## Penyimpanan
 
-```text
-database/aru_ticketing_mysql.sql
-```
+- **MySQL:** user, admin, ticket, PIC directory, OTP/reset token, session login.
+- **Filesystem `uploads/`:** evidence ticket dan evidence penyelesaian.
+- Tidak ada lagi `users.json`, `tickets.json`, `pics.json`, atau `email_tokens.json`.
+- Evidence gambar tetap hemat space: resize + WebP hanya bila hasil akhirnya lebih kecil. File original gambar tidak disimpan ganda.
 
-SQL tersebut membuat database:
+## 1. Persiapan database
+
+Buat satu database MySQL, misalnya:
 
 ```text
 aru_ticketing
 ```
 
-beserta tabel:
+Di XAMPP/localhost bisa melalui `http://localhost/phpmyadmin`. Di server HestiaCP buat database dan user MySQL dari panel Hestia terlebih dahulu.
+
+Setelah database dibuat, pilih database tersebut lalu **Import**:
 
 ```text
-users
-pics
-tickets
-ticket_evidence
-ticket_timeline
-email_tokens
-ticket_sequences
-sessions
-app_meta
+sql/01_schema.sql
 ```
 
-Jika user MySQL Anda tidak punya izin `CREATE DATABASE`, buat database `aru_ticketing` secara manual dari panel/phpMyAdmin, kemudian pilih database itu dan import schema utama. Bila perlu hapus dua baris `CREATE DATABASE` dan `USE` dari file SQL sebelum import.
+Aplikasi juga menjalankan `CREATE TABLE IF NOT EXISTS` saat startup sebagai safety net, tetapi database dan user MySQL tetap harus sudah tersedia.
 
-## 2. Isi `.env`
+## 2. Tambahkan MySQL ke .env lama
 
-File `.env` sudah tersedia. Konfigurasi sebelumnya dipertahankan dan bagian MySQL sudah ditambahkan.
-
-Yang paling penting untuk diisi:
+Jangan buang `.env` lama karena konfigurasi SMTP, root admin, dan setting upload masih dipakai. Tambahkan saja:
 
 ```env
 DB_HOST=127.0.0.1
@@ -53,248 +52,214 @@ DB_PORT=3306
 DB_NAME=aru_ticketing
 DB_USER=ISI_USERNAME_MYSQL
 DB_PASSWORD=ISI_PASSWORD_MYSQL
+DB_CONNECTION_LIMIT=5
 ```
 
-Contoh pada XAMPP lokal **hanya jika memang konfigurasi MySQL Anda seperti itu**:
+Template copy-paste tersedia di `ENV_MYSQL_TAMBAHAN.txt`.
 
-```env
-DB_USER=root
-DB_PASSWORD=
-```
+Untuk local XAMPP, sesuaikan dengan username/password MySQL lokal. Untuk HestiaCP, gunakan nama database dan username persis seperti yang dibuat oleh Hestia (sering memiliki prefix akun).
 
-Jangan menganggap contoh di atas selalu benar untuk server production.
-
-## 3. Install dependency
-
-Buka project di VS Code lalu PowerShell/Terminal:
+## 3. Install dan jalankan
 
 ```powershell
+cd C:\xampp\htdocs\ARU_Ticketing
 npm install
-```
-
-Versi MySQL menambahkan:
-
-```text
-mysql2
-express-mysql-session
-```
-
-Session login sekarang juga tersimpan di MySQL; tidak ada lagi folder JSON session.
-
-## 4. Tes koneksi database
-
-```powershell
-npm run db:test
-```
-
-Jika benar, output kurang lebih:
-
-```text
-MySQL connection: OK
-Database: aru_ticketing
-Schema version: 5.0.0
-```
-
-Jika gagal, periksa MySQL service, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, dan pastikan SQL sudah diimport.
-
-## 5. Jalankan aplikasi
-
-```powershell
 npm start
 ```
 
-Buka:
+Lalu buka:
 
 ```text
 http://localhost:3000
 ```
 
-Root administrator akan otomatis dibuat saat startup **hanya jika tabel users belum memiliki root administrator**. Credential root dibaca dari `.env`.
+Jika koneksi database salah, server tidak akan start dan console akan meminta pengecekan `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, dan `DB_PASSWORD`.
 
-## Workflow yang tetap tersedia
+## 4. Data demo lengkap
 
-### Registrasi
-
-- `@aruraharja.co.id` → OTP email → verifikasi → akun aktif → auto-login.
-- Email eksternal → pending approval → Admin atau Root dapat approve/reject.
-- Forgot Password → OTP email.
-- Change Password → current password + password baru.
-
-### Role
-
-**User**
-- Buat dan lihat ticket miliknya.
-- Upload evidence.
-- Confirm Finished / Reopen setelah resolve.
-- Export ticket sendiri.
-
-**Administrator**
-- Kelola semua ticket.
-- Bisa menjadi PIC dirinya sendiri.
-- Assign admin lain atau PIC non-admin.
-- Create/Edit/Delete PIC non-admin.
-- Approve/reject registrasi eksternal.
-- Resolve ticket sebagai Solver.
-- Export Excel dengan filter lengkap.
-- Tidak dapat CRUD akun user/admin.
-
-**Root Administrator**
-- Semua kemampuan Administrator.
-- CRUD user dan admin.
-- Reset password user/admin.
-- Tidak dapat menghapus root administrator.
-
-### PIC
-
-PIC dapat berupa:
+Untuk test sebelum go-live, import setelah schema:
 
 ```text
-1. Root Administrator
-2. Administrator
-3. PIC non-admin dari PIC Directory
+sql/02_demo_data.sql
 ```
 
-PIC non-admin hanya menyimpan:
+Demo ini sengaja mencakup semua kategori sistem:
+
+- Hardware
+- Software / Aplikasi
+- Network / Wi-Fi
+- Printer / Scanner
+- Email / Account
+- Server / System
+- Access / Permission
+- Website
+- Data / Report
+- Other
+
+Isi demo:
+
+- 1 akun Administrator demo
+- 3 akun User demo
+- 3 PIC non-admin demo
+- 21 ticket demo
+- variasi priority: Unassigned, Low, Medium, High, Critical
+- variasi status: Open, In Progress, Waiting User, Reopened, Resolved - Awaiting Confirmation, Finished
+- contoh PIC admin, PIC vendor/non-admin, ticket tanpa PIC, guest ticket, serta Solver
+- tanggal tersebar 1-20 September 2026 agar filter From-To dan report dapat dites
+
+Akun test menggunakan email `example.invalid`, jadi tidak diarahkan ke mailbox orang asli.
+
+### Login demo
+
+Semua akun demo menggunakan password:
+
+```text
+Demo12345!
+```
+
+Username:
+
+```text
+demo.admin
+demo.rina
+demo.budi
+demo.sinta
+```
+
+**Hapus seluruh akun/data demo sebelum production.**
+
+## 5. PIC dan penyelesaian ticket
+
+Root Administrator dan Administrator biasa otomatis muncul sebagai PIC internal. Admin dapat memilih dirinya sendiri, admin lain, atau PIC non-admin.
+
+PIC non-admin dikelola melalui **PIC Directory**, cukup:
 
 ```text
 Nama
 Kontak
 ```
 
-Snapshot PIC tersimpan di ticket sehingga histori tetap terbaca walaupun PIC/account kemudian dihapus.
+Saat admin menekan Resolve:
 
-### Solver
+- admin tersebut dicatat sebagai **Solver**;
+- PIC yang sudah ada tidak diganti;
+- bila ticket belum mempunyai PIC, admin yang resolve otomatis dijadikan PIC.
 
-Solver adalah **admin/root yang menekan Resolve Ticket**. PIC dan Solver dapat berbeda.
+Dengan demikian report dapat membedakan **Created By**, **PIC**, dan **Solver**.
 
-Jika ticket belum mempunyai PIC ketika admin menekan Resolve, PIC otomatis diisi admin yang menyelesaikan ticket.
+## 6. Filter dan Excel
 
-## Estimasi default
+Root dan Admin mempunyai hak export yang sama. Filter meliputi:
 
-| Priority | Estimasi Proses | Estimasi Completion |
-|---|---|---|
-| Critical | 1-2 jam | Hari ini / secepatnya |
-| High | 2-4 jam | 1 hari kerja |
-| Medium | 1 hari kerja | 2 hari kerja |
-| Low | 1-2 hari kerja | 3-5 hari kerja |
-| Unassigned | TBA | TBA |
+- Dari Tanggal - Sampai Tanggal
+- Hari Ini / 7 Hari / Keseluruhan
+- PIC
+- Solver
+- Created By
+- Kategori
+- Priority
+- Status
+- Search
 
-Admin/root dapat override kedua nilai tersebut secara manual, termasuk mengisi `TBA`.
+Workbook mempunyai sheet `Ringkasan` dan `Tickets`, termasuk rekap jumlah ticket per PIC, creator, dan solver.
 
-## Excel Report
+## 7. Membersihkan demo sebelum go-live
 
-Admin dan Root mempunyai hak export yang sama. Filter yang tersedia:
+### Cara paling aman
 
-```text
-Quick Period: Hari Ini / 7 Hari / Keseluruhan
-Tanggal Mulai
-Tanggal Akhir
-PIC
-Created By
-Solver
-Kategori
-Priority
-Status
-Search
-```
-
-Jika `Tanggal Mulai/Akhir` diisi, range tersebut mengalahkan Quick Period.
-
-Workbook memiliki:
+Stop Node terlebih dahulu agar cache aplikasi tidak menulis ulang data demo:
 
 ```text
-Sheet Ringkasan
-- total ticket
-- pembagian per PIC
-- pembagian per Created By
-- pembagian per Solver
-
-Sheet Tickets
-- detail lengkap setiap ticket
+Ctrl + C
 ```
 
-## Hemat storage
+Di phpMyAdmin:
 
-Evidence tidak disimpan di database sebagai binary. MySQL hanya menyimpan metadata seperti:
+1. Pilih database ARU Ticketing.
+2. Masuk tab **Import**.
+3. Import `sql/03_cleanup_demo.sql`.
+4. Buka tabel `aru_tickets`, `aru_users`, dan `aru_pics`; pastikan tidak ada ID `DEMO`.
+5. Start kembali aplikasi dengan `npm start`.
+
+`03_cleanup_demo.sql` hanya menghapus row demo (`is_demo=1` / ID demo), sehingga data asli tetap aman.
+
+### Kalau ingin menghapus SELURUH data ticketing tetapi akun tetap ada
+
+Gunakan:
 
 ```text
-nama file
-path/url
-ukuran original
-ukuran setelah kompresi
-saved bytes
-mimetype
-waktu upload
+sql/04_reset_all_ticketing_data_KEEP_ACCOUNTS.sql
 ```
 
-File aktual tetap berada di:
+Ini menghapus seluruh:
 
-```text
-uploads/tickets/
-uploads/resolutions/
+- ticket
+- OTP/reset token
+- PIC non-admin
+- session login
+
+Tetapi mempertahankan akun User/Admin/Root pada `aru_users`.
+
+**Jangan jalankan file reset ini pada production tanpa backup.**
+
+## 8. Hapus manual tanpa file SQL
+
+Jika ingin dilakukan manual dari tab **SQL** phpMyAdmin, untuk demo saja:
+
+```sql
+DELETE FROM aru_tickets WHERE is_demo = 1 OR id LIKE 'ARU-DEMO-%';
+DELETE FROM aru_email_tokens WHERE user_id LIKE 'USR-DEMO-%';
+DELETE FROM aru_pics WHERE is_demo = 1 OR id LIKE 'PIC-DEMO-%';
+DELETE FROM aru_sessions;
+DELETE FROM aru_users WHERE is_demo = 1 OR id LIKE 'USR-DEMO-%';
 ```
 
-Untuk membersihkan file orphan yang tidak memiliki record di MySQL dan sudah berumur minimal 24 jam:
+Untuk melihat dulu sebelum delete:
 
-```powershell
-npm run storage:cleanup
+```sql
+SELECT id, title, status, priority FROM aru_tickets WHERE is_demo = 1;
+SELECT id, username, role FROM aru_users WHERE is_demo = 1;
+SELECT id, name, contact FROM aru_pics WHERE is_demo = 1;
 ```
 
-Script ini **tidak menghapus evidence yang masih direferensikan database**.
+## 9. Backup sebelum cleanup
 
-## Migrasi data JSON V4.3 (opsional)
+Di phpMyAdmin pilih database -> **Export** -> Quick -> SQL. Simpan backup sebelum menjalankan cleanup/reset. Untuk server, backup database reguler tetap direkomendasikan.
 
-Jika ingin mempertahankan data V4.3:
+## 10. SMTP
 
-1. Backup project lama.
-2. Jika memakai **UPDATE ONLY** di folder project V4.3 yang sama, folder `data/` lama boleh dibiarkan: migration script akan mendeteksinya otomatis. Jika memakai project baru, copy file berikut dari folder `data` lama ke folder `legacy-data` V5:
+Konfigurasi SMTP tetap memakai `.env` versi sebelumnya. Bila console menampilkan `535 Incorrect authentication data`, aplikasi masih dapat membuka halaman dan menggunakan MySQL, tetapi OTP, forgot password, serta notifikasi email tidak akan bekerja sampai kredensial mailbox benar.
 
-```text
-users.json
-tickets.json
-pics.json
-email_tokens.json
-```
+Jangan commit `.env` atau password database/SMTP ke GitHub.
 
-3. Copy isi folder upload lama ke:
+## V5.3 - Supervisor & Service Analytics
 
-```text
-uploads/tickets/
-uploads/resolutions/
-```
+V5.3 menambahkan rating user, dashboard analytics, role Admin Supervisor read-only, ticket Public/Private, routing IT/Network, PIC specialization, dua mode resolve, serta tracking target estimasi vs durasi aktual. Tidak ada perubahan schema MySQL wajib; field tambahan tersimpan di payload tabel existing. Lihat `UPDATE_NOTES_V5.3.md`.
 
-4. Setelah schema MySQL sudah diimport dan `.env` DB benar, jalankan:
+### Tambahan V5.3 monitoring
 
-```powershell
-npm run migrate:json
-```
+- Analytics dapat dilihat untuk Keseluruhan, Hari Ini, 7 Hari, atau 30 Hari.
+- Setelah ticket resolved, sistem membandingkan durasi aktual dengan target estimasi dan menampilkan selisih lebih cepat/terlambat.
+- Admin yang bukan PIC tidak dapat mengubah pekerjaan atau resolve ticket milik PIC admin lain, tetapi tetap dapat mengubah visibility Public/Private.
+- Ticket public dapat dibaca seluruh user, namun data kontak personal pada ticket public milik user lain disanitasi dari response API.
 
-Script memakai `INSERT IGNORE` untuk akun/PIC/token dan melewati Ticket ID yang sudah ada, sehingga lebih aman jika dijalankan ulang. Tetap lakukan backup sebelum migrasi.
 
-## Production melalui Nginx / HestiaCP
+## V5.3 Analytics & Structured Estimate
+Lihat `UPDATE_NOTES_V5.3.md`. Versi ini menambahkan filter PIC di dashboard, grafik web, estimasi numerik hari kerja/jam/menit, target mulai proses, dan sheet Dashboard Grafik pada export Excel. Tidak ada perubahan schema MySQL.
 
-Setelah domain dan HTTPS siap, ubah:
+## V5.4.2 - Percentage Analytics & Tutorial
+Dashboard analytics sekarang menampilkan nilai sekaligus persentase untuk distribusi yang relevan, termasuk status, priority, jenis ticket, area, visibility, rating, workload PIC, solver, dan kesehatan estimasi. Detail PIC juga mencakup completion %, on-time %, penggunaan waktu target, dan rating score.
 
-```env
-APP_BASE_URL=https://ticketing.domain-anda.co.id
-TRUST_PROXY=true
-SESSION_COOKIE_SECURE=true
-NODE_ENV=production
-```
+Semua role memiliki menu **Tutorial**. Sebelum login, tombol **Butuh bantuan?** membuka Help Center publik lengkap yang juga dapat diakses melalui `/help`.
 
-Reverse proxy diarahkan ke port Node, misalnya:
+## V5.5 - Guided UX & Supervisor Analytics
 
-```text
-127.0.0.1:3000
-```
+V5.5 memperbaiki pengalaman penggunaan tanpa mengubah schema MySQL:
 
-Jangan expose port Node langsung ke internet bila sudah berada di belakang Nginx.
+- browser `prompt()` / `confirm()` diganti dialog in-app yang konsisten untuk reopen, approve/reject, reset password, delete PIC, dan delete account;
+- dashboard analytics mempunyai panel **Cara Baca Cepat**, definisi PIC/Solver, On-time %, Aktual/Target %, rating, serta catatan fairness perbandingan;
+- setiap grafik memiliki bagian **Cara baca** yang dapat dibuka tanpa memenuhi layar;
+- Supervisor mendapatkan tutorial khusus yang menjelaskan urutan membaca dashboard, arti metrik, cara membandingkan PIC secara adil, sample size, rating, estimasi, dan export Excel;
+- Help Center publik diperluas dengan pembuatan ticket, priority, status, estimasi, resolution mode, visibility, analytics, role, keamanan, contoh, dan FAQ.
 
-## Catatan keamanan
-
-- `.env` ada di `.gitignore`.
-- Password tersimpan sebagai bcrypt hash.
-- OTP tersimpan sebagai hash HMAC dan punya expiry/attempt limit.
-- Session tersimpan di MySQL.
-- Evidence file tidak boleh diberi execute permission.
-- Sebelum benar-benar production, ganti `SESSION_SECRET` menjadi random panjang dan rotasi credential SMTP yang pernah dibagikan di luar server.
+Tidak ada `ALTER TABLE`, dependency baru, atau perubahan `.env`.

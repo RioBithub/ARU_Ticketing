@@ -1,0 +1,11 @@
+ARU IT Ticketing V5.4.1
+
+1. Backup project / commit perubahan lokal bila ada.
+2. Replace file dari paket UPDATE ONLY.
+3. .env dan database tidak perlu diubah.
+4. Jalankan: npm run check
+5. Jalankan: npm start
+6. Buka Dashboard dan pilih Periode / PIC.
+7. Pastikan grafik Actual vs Estimasi per Priority dan Persentase Sesuai Estimasi tampil.
+
+Tidak ada npm dependency baru dan tidak ada migration SQL.

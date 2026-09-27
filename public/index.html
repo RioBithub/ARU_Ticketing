@@ -22,8 +22,8 @@
       </div>
       <div class="auth-copy">
         <span class="eyebrow light">IT SERVICE DESK</span>
-        <h1>Kendala tercatat.<br/>Progress terlihat.</h1>
-        <p>Pelaporan kendala, evidence, estimasi pekerjaan, notifikasi email, hingga konfirmasi user dalam satu sistem.</p>
+        <h1>Setiap ticket tercatat.<br/>Progress terlihat.</h1>
+        <p>Kendala, permintaan layanan, evidence, estimasi pekerjaan, notifikasi email, hingga konfirmasi user dalam satu sistem.</p>
       </div>
       <div class="auth-feature-grid">
         <div><b>01</b><span>Email Verification</span></div>
@@ -41,6 +41,7 @@
           <button class="tab-btn" data-tab="guest">Guest</button>
           <button class="tab-btn" data-tab="forgot">Lupa Password</button>
         </div>
+        <button type="button" class="auth-help-btn" id="publicHelpBtn"><span>?</span><div><b>Butuh bantuan?</b><small>Buka tutorial lengkap penggunaan IT Ticketing</small></div><strong>→</strong></button>
 
         <div class="auth-pane active" id="tab-login">
           <span class="eyebrow">WELCOME BACK</span>
@@ -88,16 +89,17 @@
         <div class="auth-pane" id="tab-guest">
           <span class="eyebrow">GUEST REQUEST</span>
           <h2>Buat Ticket Tanpa Akun</h2>
-          <p class="muted">Untuk permintaan cepat seperti pengajuan pembuatan email, akses, perangkat, atau bantuan IT lainnya. Priority akan ditentukan oleh tim IT.</p>
+          <p class="muted">Untuk kendala maupun permintaan layanan seperti gangguan akses, pembuatan email, instalasi, perangkat, atau bantuan IT lainnya. Priority akan ditentukan oleh tim IT.</p>
           <form id="guestTicketForm" class="form-grid two">
             <label>Nama Lengkap<input name="name" required placeholder="Nama requester" /></label>
             <label>Bagian / Divisi<input name="department" placeholder="Opsional" /></label>
             <label>Email<input name="email" type="email" placeholder="Opsional, untuk notifikasi ticket" /></label>
             <label>No. Telepon<input name="phone" placeholder="Opsional" /></label>
+            <label>Jenis Ticket<select name="requestKind"><option value="Issue">Kendala / Incident</option><option value="Request">Permintaan / Service Request</option></select></label><label>Area Penanganan<select name="issueType"><option value="IT">IT</option><option value="Network">Network</option></select></label>
             <label>Kategori<select name="category" id="guestCategory"></select></label>
             <label>Lokasi / Area<input name="location" placeholder="Opsional" /></label>
-            <label class="span-2">Judul Permintaan<input name="title" required placeholder="Contoh: Pengajuan pembuatan email perusahaan" /></label>
-            <label class="span-2">Detail Permintaan<textarea name="description" rows="5" required placeholder="Jelaskan kebutuhan atau kendala secara singkat dan jelas."></textarea></label>
+            <label class="span-2">Judul Ticket<input name="title" required placeholder="Contoh: Internet tidak terhubung / permintaan akun baru" /></label>
+            <label class="span-2">Detail Ticket<textarea name="description" rows="5" required placeholder="Jelaskan kendala atau kebutuhan layanan secara singkat dan jelas."></textarea></label>
             <div class="span-2 guest-priority-note"><span>Priority</span><strong>Ditentukan oleh IT</strong><small>Ticket guest dibuat sebagai <b>Unassigned</b> dengan estimasi TBA sampai admin menetapkan priority.</small></div>
             <div class="span-2"><div class="upload-zone compact-upload" id="guestUploadZone"><input type="file" id="guestEvidenceInput" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"><div class="upload-icon">⇧</div><strong>Tambahkan evidence bila diperlukan</strong><span>Maks. 10 file · 5 MB/file · gambar dikompres otomatis</span></div><div id="guestFileQueue" class="file-queue"></div></div>
             <button class="btn primary span-2">Kirim Ticket Guest</button>
@@ -139,6 +141,14 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="helpView" class="public-help-shell hidden">
+    <header class="public-help-topbar">
+      <div class="public-help-brand"><img src="https://aruraharja.co.id/images/general/logo/aru.svg" alt="ARU" /><div><strong>IT Ticketing</strong><span>Help Center</span></div></div>
+      <button class="btn ghost" id="helpBackBtn">← Kembali</button>
+    </header>
+    <main id="publicHelpContent" class="public-help-content"></main>
   </section>
 
   <div id="appView" class="app-shell hidden">
