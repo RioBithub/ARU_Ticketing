@@ -1,0 +1,10 @@
+ARU IT Ticketing V5.5.1 Patch - Root Delete Ticket
+
+1. Replace server.js and public/app.js in the local VS Code project.
+2. Run: npm run check
+3. Run localhost and test Root Admin > Ticket Detail > Hapus Ticket Permanen.
+4. Commit and push to GitHub.
+5. Production: restore the old production-only server.js modification first, then git pull --ff-only origin main.
+
+No SQL migration, npm install, or .env change is required.
+server.js now defaults HOST to 127.0.0.1, so production no longer needs a manual app.listen bind edit.

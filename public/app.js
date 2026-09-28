@@ -783,7 +783,8 @@ function adminTicketControls(t){
     </div>
     <button class="btn ghost span-2" id="applyPriorityDefault">↺ Gunakan Default Priority</button>
     <button class="btn secondary span-2" id="saveTicketChanges">Simpan Perubahan & Kirim Email</button>
-  </div><div class="divider"><span>penyelesaian</span></div><button class="btn primary wide" id="resolveTicketBtn">✓ Resolve Ticket + Pilih Mode Konfirmasi</button></div>`;
+  </div><div class="divider"><span>penyelesaian</span></div><button class="btn primary wide" id="resolveTicketBtn">✓ Resolve Ticket + Pilih Mode Konfirmasi</button>
+  ${isRoot()?`<div class="divider"><span>root admin</span></div><button class="btn danger-action wide" id="deleteTicketBtn">🗑 Hapus Ticket Permanen</button><small class="muted" style="display:block;margin-top:8px">Khusus Root Administrator. Ticket, histori di database V5.5, dan file evidence ticket akan dihapus permanen.</small>`:''}</div>`;
 }
 function bindAdminTicketControls(t){
   const setEstimateValues=(prefix,p)=>{const v=normalizeEstimatePartsClient(p);$(`#${prefix}Days`).value=v.days;$(`#${prefix}Hours`).value=v.hours;$(`#${prefix}Minutes`).value=v.minutes;syncEstimateEditor(prefix);};
@@ -792,6 +793,38 @@ function bindAdminTicketControls(t){
   ['procEstDays','procEstHours','procEstMinutes','compEstDays','compEstHours','compEstMinutes'].forEach(id=>$(`#${id}`)?.addEventListener('input',()=>syncEstimateEditor(id.startsWith('proc')?'procEst':'compEst')));
   $('#saveTicketChanges').onclick=async()=>{try{await api(`/api/admin/tickets/${encodeURIComponent(t.id)}`,{method:'PATCH',body:JSON.stringify({status:$('#editStatus').value,priority:$('#editPriority').value,assignedPicKey:$('#editPic').value,processingEstimate:readEstimateEditor('procEst'),completionEstimate:readEstimateEditor('compEst'),requestKind:$('#editRequestKind').value,issueType:$('#editIssueType').value,isPublic:$('#editVisibility').value==='public'})});toast('Perubahan disimpan. Jenis ticket, target estimasi, sisa waktu, dan visibility ikut diperbarui.');closeModal();navigate(currentPage);}catch(err){toast(err.message,'error');}};
   $('#resolveTicketBtn').onclick=()=>resolveModal(t);
+
+  if(isRoot()&&$('#deleteTicketBtn')){
+    $('#deleteTicketBtn').onclick=async()=>{
+      const typed=await uiPrompt({
+        tone:'danger',
+        icon:'🗑',
+        title:`Hapus ticket ${t.id}?`,
+        message:'Aksi ini permanen. Ticket akan hilang dari monitoring, analytics, report, serta evidence yang tersimpan untuk ticket ini akan dibersihkan dari server.',
+        confirmText:'Hapus Permanen',
+        field:{
+          label:'Ketik ID ticket untuk konfirmasi',
+          type:'text',
+          required:true,
+          minLength:3,
+          placeholder:t.id,
+          help:`Ketik persis: ${t.id}`
+        },
+        note:'Gunakan hanya untuk ticket salah input, duplikat, data uji, atau ticket yang memang harus dihapus. Untuk pekerjaan valid yang selesai, gunakan Resolve.'
+      });
+      if(typed===null)return;
+      if(typed!==t.id){
+        toast(`Konfirmasi tidak cocok. Ketik persis ${t.id}.`,'error');
+        return;
+      }
+      try{
+        const d=await api(`/api/root/tickets/${encodeURIComponent(t.id)}`,{method:'DELETE'});
+        toast(`${d.message||'Ticket berhasil dihapus.'}${Number(d.removedFiles)>0?` ${d.removedFiles} file evidence dibersihkan.`:''}`);
+        closeModal();
+        navigate(currentPage);
+      }catch(err){toast(err.message,'error');}
+    };
+  }
 }
 
 function resolveModal(t){

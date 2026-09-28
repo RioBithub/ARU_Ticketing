@@ -17,6 +17,7 @@ const app = express();
 if (String(process.env.TRUST_PROXY || 'false').toLowerCase() === 'true') app.set('trust proxy', 1);
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || '127.0.0.1';
 const APP_NAME = process.env.APP_NAME || 'ARU IT Ticketing';
 const APP_BASE_URL = process.env.APP_BASE_URL || `http://localhost:${PORT}`;
 const INTERNAL_DOMAIN = String(process.env.INTERNAL_EMAIL_DOMAIN || 'aruraharja.co.id').toLowerCase();
@@ -540,6 +541,35 @@ async function saveUploadedFile(file, folderName) {
   };
 }
 async function saveUploadedFiles(files, folderName) { return Promise.all((files||[]).map(f=>saveUploadedFile(f,folderName))); }
+
+function removeStoredEvidenceFile(file){
+  const url=String(file?.url||'').trim();
+  let folder=null;
+  if(url.startsWith('/uploads/tickets/')) folder=TICKET_UPLOAD_DIR;
+  else if(url.startsWith('/uploads/resolutions/')) folder=RESOLUTION_UPLOAD_DIR;
+  if(!folder)return false;
+
+  const filename=path.basename(url);
+  if(!filename)return false;
+  const fullPath=path.join(folder,filename);
+
+  try{
+    if(fs.existsSync(fullPath)){
+      fs.unlinkSync(fullPath);
+      return true;
+    }
+  }catch(err){
+    console.warn('Evidence cleanup warning:',fullPath,err.message);
+  }
+  return false;
+}
+function removeTicketEvidenceFiles(ticket){
+  let removedFiles=0;
+  for(const file of [...(ticket?.evidence||[]),...(ticket?.resolutionEvidence||[])]){
+    if(removeStoredEvidenceFile(file))removedFiles++;
+  }
+  return removedFiles;
+}
 
 function auth(req,res,next){ if(!req.session.user) return res.status(401).json({error:'Silakan login.'}); next(); }
 function adminOnly(req,res,next){ if(!req.session.user || !isAdminRole(req.session.user.role)) return res.status(403).json({error:'Akses admin diperlukan.'}); next(); }
@@ -1108,13 +1138,36 @@ app.get('/api/tickets/:id',auth,(req,res)=>{
   ticket.requestKind=inferRequestKind(ticket);
   ticket.issueType=inferIssueType(ticket);
   ticket.estimateMeta={processTargetAt:ticket.processTargetAt||null,targetDueAt:ticket.targetDueAt||null,remainingMinutes:remainingMinutes(ticket),estimatedProcessingMinutes:ticket.estimatedProcessingMinutes??estimateToMinutes(ticket.estimatedProcessing),estimatedCompletionMinutes:ticket.estimatedCompletionMinutes??estimateToMinutes(ticket.estimatedCompletion),elapsedMinutes:ticketElapsedMinutes(ticket)};
-  ticket.permissions={isOwner,canManage:canInterveneTicket(me,ticket),canChangeVisibility:isAdminRole(me?.role),canConfirm:isOwner&&ticket.status==='Resolved - Awaiting Confirmation'&&ticket.resolutionMode==='user_confirm'};
+  ticket.permissions={isOwner,canManage:canInterveneTicket(me,ticket),canChangeVisibility:isAdminRole(me?.role),canDelete:me.role==='root_admin',canConfirm:isOwner&&ticket.status==='Resolved - Awaiting Confirmation'&&ticket.resolutionMode==='user_confirm'};
   if(me.role==='user'&&!isOwner){
     const strip=p=>p?{...p,email:'',phone:'',contact:''}:p;
     ticket.requester=strip(ticket.requester);ticket.createdBy=strip(ticket.createdBy);ticket.assignedTo=strip(ticket.assignedTo);ticket.resolvedBy=strip(ticket.resolvedBy);
   }
   res.json({ticket});
 });
+
+app.delete('/api/root/tickets/:id',rootOnly,async(req,res,next)=>{
+  try{
+    const tickets=readJson(TICKETS_FILE);
+    const idx=tickets.findIndex(t=>t.id===req.params.id);
+    if(idx<0)return res.status(404).json({error:'Ticket tidak ditemukan.'});
+
+    const removedTicket=tickets[idx];
+    tickets.splice(idx,1);
+
+    // Persist deletion first. Evidence files are cleaned only after the DB write succeeds.
+    await writeJson(TICKETS_FILE,tickets);
+    const removedFiles=removeTicketEvidenceFiles(removedTicket);
+
+    res.json({
+      ok:true,
+      id:removedTicket.id,
+      removedFiles,
+      message:`Ticket ${removedTicket.id} berhasil dihapus permanen.`
+    });
+  }catch(err){next(err)}
+});
+
 app.patch('/api/admin/tickets/:id',adminOnly,async(req,res,next)=>{
   try{
     const tickets=readJson(TICKETS_FILE);const idx=tickets.findIndex(t=>t.id===req.params.id);
@@ -1650,7 +1703,7 @@ async function bootstrap(){
   await migrateTickets();
   await seedRoot();
   await flushDbWrites();
-  app.listen(PORT,()=>console.log(`${APP_NAME} V5.4 MySQL running at http://localhost:${PORT} | DB: ${DB_CONFIG.database}`));
+  app.listen(PORT,HOST,()=>console.log(`${APP_NAME} V5.5.1 MySQL running at http://${HOST}:${PORT} | DB: ${DB_CONFIG.database}`));
 }
 async function shutdown(signal){
   console.log(`${signal} received. Flushing MySQL writes...`);
